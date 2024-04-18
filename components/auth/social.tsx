@@ -7,13 +7,19 @@ import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
 import { useCallback } from "react";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
+import { useSearchParams } from "next/navigation";
 
 const Social = () => {
-  const signInProvider = useCallback((provider: "google" | "github") => {
-    signIn(provider, {
-      callbackUrl: DEFAULT_LOGIN_REDIRECT,
-    });
-  }, []);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
+  const signInProvider = useCallback(
+    (provider: "google" | "github") => {
+      signIn(provider, {
+        callbackUrl: callbackUrl || DEFAULT_LOGIN_REDIRECT,
+      });
+    },
+    [callbackUrl]
+  );
 
   return (
     <div className="flex items-center w-full gap-x-2">

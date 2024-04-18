@@ -4,14 +4,16 @@ import authConfig from "@/auth.config";
 import { db } from "@/lib/db";
 import { getUserById } from "@/data/user";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { UserRole } from "@prisma/client";
+import { User, UserRole } from "@prisma/client";
 import { getTwoFactorConfirmationByUserId } from "./data/two-factor-confirmation";
+import { getAccountByUserId } from "./data/account";
 
 declare module "next-auth" {
   interface Session {
     user: {
       role: UserRole;
       isTwoFactorEnabled: boolean;
+      isOAuth: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -59,37 +61,37 @@ export const {
     },
 
     async session({ token, session }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
-      }
-
-      if (token.role && session.user) {
-        session.user.role = token.role as UserRole;
-      }
-
-      if (token.isTwoFactorEnabled && session.user) {
-        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
-      }
-
       if (session.user) {
-        session.user.name = token.name;
+        session.user.id = token.sub as string;
+        session.user.name = token.name as string;
         session.user.email = token.email as string;
+        session.user.role = token.role as UserRole;
+        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
+        session.user.isOAuth = token.isOAuth as boolean;
       }
 
       return session;
     },
 
-    async jwt({ token }) {
-      if (!token.sub) return token;
+    async jwt({ token, trigger, session, user }) {
+      if (trigger === "update" && session) {
+        token = {
+          ...token,
+          ...session.user,
+        };
 
-      const existingUser = await getUserById(token.sub);
+        return token;
+      }
 
-      if (!existingUser) return token;
+      if (user) {
+        const existingAccount = await getAccountByUserId(user.id as string);
 
-      token.name = existingUser.name;
-      token.email = existingUser.email;
-      token.role = existingUser.role;
-      token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
+        token = {
+          ...token,
+          ...user,
+          isOAuth: !!existingAccount,
+        };
+      }
 
       return token;
     },
