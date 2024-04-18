@@ -15,7 +15,7 @@ export const sendTwoFactorTokenByEmail = async (
 };
 
 export const sendVerificationEmail = async (token: string, email: string) => {
-  const confirmLink = `http://localhost:3000/auth/new-verification?token=${token}`;
+  const confirmLink = `https://next-auth-v5-beta-rh76aqe13-htetws-projects.vercel.app/auth/new-verification?token=${token}`;
 
   await resend.emails.send({
     from: "onboarding@resend.dev",
@@ -26,7 +26,7 @@ export const sendVerificationEmail = async (token: string, email: string) => {
 };
 
 export const sendPasswordResetEmail = async (token: string, email: string) => {
-  const resetLink = `http://localhost:3000/auth/new-password?token=${token}`;
+  const resetLink = `https://next-auth-v5-beta-rh76aqe13-htetws-projects.vercel.app/auth/new-password?token=${token}`;
 
   await resend.emails.send({
     from: "onboarding@resend.dev",
